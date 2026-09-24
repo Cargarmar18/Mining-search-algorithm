@@ -218,40 +218,37 @@ class Node:
         return hash(self.state)
 
 
-def breadth_first_tree_search(problem):
-    """
-    Search the shallowest nodes in the search tree first.
-    Search through the successors of a problem to find a goal.
-    The argument frontier should be an empty queue.
-    Repeats infinitely in case of loops.
-    """
-
-    frontier = deque([Node(problem.initial)])  # FIFO queue
-
+def breadth_first_graph_search(problem):
+    """Used this instead of tree since the problem has looping issues"""
+    node = Node(problem.initial)
+    if problem.goal_test(node.state):
+        return node
+    frontier = deque([node])
+    explored = set()
     while frontier:
         node = frontier.popleft()
-        if problem.goal_test(node.state):
-            return node
-        frontier.extend(node.expand(problem))
-    return None
+        explored.add(node.state)
+        for child in node.expand(problem):
+            if child.state not in explored and child not in frontier:
+                if problem.goal_test(child.state):
+                    return child, len(explored), len(frontier)
+                frontier.append(child)
+    return None, len(explored), len(frontier)
 
 
-def depth_first_tree_search(problem):
-    """
-    Search the deepest nodes in the search tree first.
-    Search through the successors of a problem to find a goal.
-    The argument frontier should be an empty queue.
-    Repeats infinitely in case of loops.
-    """
+def depth_first_graph_search(problem):
+    """Used this instead of tree since the problem has looping issues"""
+    frontier = [(Node(problem.initial))]  # Stack
 
-    frontier = [Node(problem.initial)]  # Stack
-
+    explored = set()
     while frontier:
         node = frontier.pop()
         if problem.goal_test(node.state):
-            return node
-        frontier.extend(node.expand(problem))
-    return None
+            return node, len(explored), len(frontier)
+        explored.add(node.state)
+        frontier.extend(child for child in node.expand(problem)
+                        if child.state not in explored and child not in frontier)
+    return None, len(explored), len(frontier)
 
 
 def best_first_graph_search(problem, f, display=False):
@@ -270,9 +267,9 @@ def best_first_graph_search(problem, f, display=False):
     while frontier:
         node = frontier.pop()
         if problem.goal_test(node.state):
-            if display:
-                print(len(explored), "paths have been expanded and", len(frontier), "paths remain in the frontier")
-            return node
+            # if display:
+                # print(len(explored), "paths have been expanded and", len(frontier), "paths remain in the frontier")
+            return node, len(explored), len(frontier)
         explored.add(node.state)
         for child in node.expand(problem):
             if child.state not in explored and child not in frontier:
@@ -281,7 +278,7 @@ def best_first_graph_search(problem, f, display=False):
                 if f(child) < frontier[child]:
                     del frontier[child]
                     frontier.append(child)
-    return None
+    return None, len(explored), len(frontier)
 
 def astar_search(problem, h=None, display=False):
     """A* search is best-first graph search with f(n) = g(n)+h(n).
