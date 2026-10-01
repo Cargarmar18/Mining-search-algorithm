@@ -82,7 +82,7 @@ class MinerProblem(Problem):
         '''define heuristic for A*'''
         row_g, col_g, _ = self.goal
         row, col, _ = node.state
-        return abs(row_g - row) + abs(col_g - col)
+        return max(abs(row_g - row), abs(col_g - col))
 
 
 def print_search_report(label, node, explored, frontier):
